@@ -1,0 +1,63 @@
+<div class="container">
+  <h2>Gestion des Employés</h2>
+
+  <div class="form-card">
+    <h3>Ajouter un employé</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" [(ngModel)]="newEmploye.nom" placeholder="Nom">
+      </div>
+      <div class="form-group">
+        <label>Prénom</label>
+        <input type="text" [(ngModel)]="newEmploye.prenom" placeholder="Prénom">
+      </div>
+      <div class="form-group">
+        <label>Salaire de base</label>
+        <input type="number" [(ngModel)]="newEmploye.salaireBase">
+      </div>
+      <div class="form-group">
+        <label>Poste</label>
+        <input type="text" [(ngModel)]="newEmploye.postetitre" placeholder="Ex: Ingénieur">
+      </div>
+    </div>
+    <button class="btn-apply" (click)="addEmploye()">Ajouter</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Poste</th>
+        <th>Salaire de base</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let e of employes">
+        <td>{{ e.idEmp }}</td>
+        <td>{{ e.nom }}</td>
+        <td>{{ e.prenom }}</td>
+        <td>{{ getPosteTitle(e.idPoste) }}</td>
+        <td>
+          <span *ngIf="editingId !== e.idEmp">{{ e.salaireBase }} MAD</span>
+          <input *ngIf="editingId === e.idEmp" type="number" [(ngModel)]="editSalaire">
+        </td>
+        <td class="actions">
+          <button *ngIf="editingId !== e.idEmp" class="btn-edit" (click)="startEdit(e)">Modifier</button>
+          <button *ngIf="editingId === e.idEmp" class="btn-apply" (click)="saveEdit(e)">Sauvegarder</button>
+          <button *ngIf="editingId === e.idEmp" class="btn-cancel" (click)="cancelEdit()">Annuler</button>
+          <button *ngIf="hasPayroll(e.idEmp)" class="btn-warning" (click)="deletePayroll(e.idEmp)">Suppr. fiches RH</button>
+          <button *ngIf="!hasPayroll(e.idEmp)" class="btn-delete" (click)="deleteEmploye(e.idEmp)">Supprimer</button>
+        </td>
+      </tr>
+      <tr *ngFor="let e of employes">
+        <td colspan="6" *ngIf="hasPayroll(e.idEmp)" class="warning-note">
+          ⚠ Cet employé a des fiches RH actives. Supprimez-les d'abord avant de supprimer l'employé.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
