@@ -97,7 +97,7 @@ export class EmployeComponent implements OnInit {
   }
 
   addEmploye() {
-    this.http.post<Poste>('http://localhost:8080/poste', { titre: this.newEmploye.postetitre })
+    this.http.post<Poste>(`${API_URL}/poste`, { titre: this.newEmploye.postetitre })
       .subscribe((poste: Poste) => {
         const employe = {
           nom: this.newEmploye.nom,
