@@ -1,0 +1,27 @@
+<div class="home">
+  <div class="hero">
+    <div class="hero-badge">Système de gestion</div>
+    <h1>Bienvenue sur <span class="brand">GestSal</span></h1>
+    <p>Gérez les salaires de vos employés simplement et efficacement.</p>
+    <div class="hero-actions">
+      <a *ngIf="isManager || isRH" routerLink="/salaires" class="btn-primary">Gérer les salaires</a>
+      <a *ngIf="isManager" routerLink="/employes" class="btn-secondary">Voir les employés</a>
+      <a *ngIf="isEmployee" routerLink="/mon-salaire" class="btn-primary">Mon espace</a>
+    </div>
+  </div>
+
+  <div class="log-section" *ngIf="isManager">
+    <div class="log-card">
+      <div class="log-header">
+        <h3>Activité récente</h3>
+        <span class="log-count">{{ logService.logs.length }} actions</span>
+      </div>
+      <div *ngIf="logService.logs.length === 0" class="log-empty">Aucune activité pour le moment.</div>
+      <div *ngFor="let log of logService.logs" class="log-item">
+        <div class="log-dot"></div>
+        <span class="log-msg">{{ log.message }}</span>
+        <span class="log-time">{{ log.time | date:'HH:mm' }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,103 @@
+<div class="container">
+  <h2>Mon Espace</h2>
+
+  <!-- SALAIRES SECTION -->
+  <div class="section">
+    <div class="section-header">
+      <h3>Mes Salaires</h3>
+      <div class="filters">
+        <select [(ngModel)]="filterSalaireAnnee" (change)="applyFilters()">
+          <option value="">Toutes les années</option>
+          <option *ngFor="let y of getYears(salaires)" [value]="y">{{ y }}</option>
+        </select>
+        <select [(ngModel)]="filterSalaireMois" (change)="applyFilters()">
+          <option value="">Tous les mois</option>
+          <option value="1">Janvier</option>
+          <option value="2">Février</option>
+          <option value="3">Mars</option>
+          <option value="4">Avril</option>
+          <option value="5">Mai</option>
+          <option value="6">Juin</option>
+          <option value="7">Juillet</option>
+          <option value="8">Août</option>
+          <option value="9">Septembre</option>
+          <option value="10">Octobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Décembre</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="filteredSalaires.length === 0" class="empty">Aucun salaire trouvé.</div>
+    <table *ngIf="filteredSalaires.length > 0">
+      <thead>
+        <tr>
+          <th>Mois</th>
+          <th>Année</th>
+          <th>Salaire final</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of filteredSalaires">
+          <td>{{ s.mois }}</td>
+          <td>{{ s.annee }}</td>
+          <td class="salary-amount">{{ s.sf | number:'1.2-2' }} MAD</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- POINTAGE SECTION -->
+  <div class="section">
+    <div class="section-header">
+      <h3>Mon Pointage</h3>
+      <div class="filters">
+        <select [(ngModel)]="filterRHAnnee" (change)="applyRHFilters()">
+          <option value="">Toutes les années</option>
+          <option *ngFor="let y of getYears(gestionRH)" [value]="y">{{ y }}</option>
+        </select>
+        <select [(ngModel)]="filterRHMois" (change)="applyRHFilters()">
+          <option value="">Tous les mois</option>
+          <option value="1">Janvier</option>
+          <option value="2">Février</option>
+          <option value="3">Mars</option>
+          <option value="4">Avril</option>
+          <option value="5">Mai</option>
+          <option value="6">Juin</option>
+          <option value="7">Juillet</option>
+          <option value="8">Août</option>
+          <option value="9">Septembre</option>
+          <option value="10">Octobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Décembre</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="filteredGestionRH.length === 0" class="empty">Aucun pointage trouvé.</div>
+    <table *ngIf="filteredGestionRH.length > 0">
+      <thead>
+        <tr>
+          <th>Mois</th>
+          <th>Année</th>
+          <th>H. sup soir</th>
+          <th>H. sup nuit</th>
+          <th>H. férié soir</th>
+          <th>H. férié nuit</th>
+          <th>Absences</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let g of filteredGestionRH">
+          <td>{{ g.mois }}</td>
+          <td>{{ g.annee }}</td>
+          <td>{{ g.heuresSupNormalSoir }} h</td>
+          <td>{{ g.heuresSupNormalNuit }} h</td>
+          <td>{{ g.heuresSupFerieSoir }} h</td>
+          <td>{{ g.heuresSupFerieNuit }} h</td>
+          <td>{{ g.heuresAbsence }} h</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,9 +1,11 @@
-<nav class="navbar">
+<nav class="navbar" *ngIf="isLoggedIn">
   <div class="nav-logo">GestSal</div>
   <div class="nav-links">
     <a routerLink="/" routerLinkActive="active">Accueil</a>
-    <a routerLink="/employes" routerLinkActive="active">Employés</a>
-    <a routerLink="/salaires" routerLinkActive="active">Salaires</a>
+    <a *ngIf="isManager" routerLink="/employes" routerLinkActive="active">Employés</a>
+    <a *ngIf="isManager || isRH" routerLink="/salaires" routerLinkActive="active">Salaires</a>
+    <a *ngIf="isEmployee" routerLink="/mon-salaire" routerLinkActive="active">Mon espace</a>
+    <button class="btn-logout" (click)="authService.logout()">Déconnexion</button>
   </div>
 </nav>
 

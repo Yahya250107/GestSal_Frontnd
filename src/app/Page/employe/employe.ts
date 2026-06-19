@@ -1,0 +1,175 @@
+import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
+import { Employe } from '../models/employe.model';
+import { Poste } from '../models/poste.model';
+import { LogService } from '../services/log';
+
+@Component({
+  selector: 'app-employe',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './employe.html',
+  styleUrl: './employe.css'
+})
+export class EmployeComponent implements OnInit {
+  employes: Employe[] = [];
+  postes: Poste[] = [];
+  editingId: number | null = null;
+  editSalaire: number = 0;
+  gestionRHList: any[] = [];
+
+  newEmploye = {
+    nom: '',
+    prenom: '',
+    salaireBase: 0,
+    postetitre: ''
+  };
+
+  private platformId = inject(PLATFORM_ID);
+
+  constructor(
+    private http: HttpClient,
+    private logService: LogService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.loadEmployes();
+    this.loadPostes();
+    this.loadGestionRH();
+  }
+
+  loadEmployes() {
+    this.http.get<Employe[]>('http://localhost:8080/employe/all')
+      .subscribe((e: Employe[]) => {
+        this.employes = e;
+        this.cdr.detectChanges();
+      });
+  }
+
+  loadPostes() {
+    this.http.get<Poste[]>('http://localhost:8080/poste')
+      .subscribe((p: Poste[]) => {
+        this.postes = p;
+        this.cdr.detectChanges();
+      });
+  }
+
+  loadGestionRH() {
+    this.http.get<any[]>('http://localhost:8080/gestionrh')
+      .subscribe((g: any[]) => {
+        this.gestionRHList = g;
+        this.cdr.detectChanges();
+      });
+  }
+
+  getPosteTitle(idPoste: number): string {
+    const poste = this.postes.find(p => p.idPoste === idPoste);
+    return poste ? poste.titre : '';
+  }
+
+  hasPayroll(idEmp: number): boolean {
+    return this.gestionRHList.some(rh => rh.idEmp === idEmp);
+  }
+
+  startEdit(emp: Employe) {
+    this.editingId = emp.idEmp;
+    this.editSalaire = emp.salaireBase;
+  }
+
+  saveEdit(emp: Employe) {
+    this.http.patch(`http://localhost:8080/employe/${emp.idEmp}`, {
+      salaireBase: String(this.editSalaire)
+    }).subscribe(() => {
+      this.logService.add(`Salaire de ${emp.prenom} ${emp.nom} modifié → ${this.editSalaire} MAD`);
+      this.editingId = null;
+      this.loadEmployes();
+    });
+  }
+
+  cancelEdit() {
+    this.editingId = null;
+  }
+
+  addEmploye() {
+    this.http.post<Poste>('http://localhost:8080/poste', { titre: this.newEmploye.postetitre })
+      .subscribe((poste: Poste) => {
+        const employe = {
+          nom: this.newEmploye.nom,
+          prenom: this.newEmploye.prenom,
+          salaireBase: this.newEmploye.salaireBase,
+          idPoste: poste.idPoste
+        };
+        this.http.post<Employe>('http://localhost:8080/employe', employe)
+          .subscribe((e: Employe) => {
+            const username = this.newEmploye.nom.toLowerCase() + Date.now().toString().slice(-3);
+            const password = this.newEmploye.prenom.toLowerCase() + '123';
+            this.logService.add(`Employé ajouté: ${e.prenom} ${e.nom} — Login: ${username} / ${password}`);
+            this.newEmploye = { nom: '', prenom: '', salaireBase: 0, postetitre: '' };
+            this.http.post('http://localhost:8080/auth/register', {
+              username, password, role: 'EMPLOYEE', idEmp: String(e.idEmp)
+            }).subscribe();
+            setTimeout(() => {
+              this.loadEmployes();
+              this.loadPostes();
+              this.cdr.detectChanges();
+            }, 500);
+          });
+      });
+  }
+
+  desactiver(id: number) {
+    const emp = this.employes.find(e => e.idEmp === id);
+    this.http.patch(`http://localhost:8080/employe/${id}/desactiver`, {})
+      .subscribe(() => {
+        this.logService.add(`Employé désactivé: ${emp?.prenom} ${emp?.nom}`);
+        this.loadEmployes();
+        this.cdr.detectChanges();
+      });
+  }
+
+  reactiver(id: number) {
+    const emp = this.employes.find(e => e.idEmp === id);
+    this.http.patch(`http://localhost:8080/employe/${id}/reactiver`, {})
+      .subscribe(() => {
+        this.logService.add(`Employé réactivé: ${emp?.prenom} ${emp?.nom}`);
+        this.loadEmployes();
+        this.cdr.detectChanges();
+      });
+  }
+
+  deletePayroll(idEmp: number) {
+    const emp = this.employes.find(e => e.idEmp === idEmp);
+    const records = this.gestionRHList.filter(rh => rh.idEmp === idEmp);
+    this.http.get<any[]>('http://localhost:8080/salaireF')
+      .subscribe((sfList: any[]) => {
+        const sfRecords = sfList.filter(s => s.idEmp === idEmp);
+        Promise.all([
+          ...sfRecords.map(s =>
+            this.http.delete(`http://localhost:8080/salaireF/${s.idEmp}/${s.mois}/${s.annee}`).toPromise()
+          ),
+          ...records.map(rh =>
+            this.http.delete(`http://localhost:8080/gestionrh/${rh.idPr}`).toPromise()
+          )
+        ]).then(() => {
+          this.logService.add(`Fiches RH et salaires supprimés pour ${emp?.prenom} ${emp?.nom}`);
+          this.loadGestionRH();
+          this.cdr.detectChanges();
+        });
+      });
+  }
+
+  deleteEmploye(id: number) {
+    const emp = this.employes.find(e => e.idEmp === id);
+    this.http.delete(`http://localhost:8080/employe/${id}/user`)
+      .subscribe(() => {
+        this.logService.add(`Employé supprimé: ${emp?.prenom} ${emp?.nom}`);
+        this.loadEmployes();
+        this.cdr.detectChanges();
+      });
+  }
+}

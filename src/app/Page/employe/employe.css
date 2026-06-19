@@ -120,3 +120,33 @@ tr:hover td {
   background: #f0f0f0;
   color: #888;
 }
+.btn-warning {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #fff7ed;
+  color: #ea580c;
+}
+.badge-actif {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: #dcfce7;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.badge-inactif {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.inactive td {
+  opacity: 0.5;
+}

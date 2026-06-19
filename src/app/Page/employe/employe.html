@@ -32,11 +32,12 @@
         <th>Prénom</th>
         <th>Poste</th>
         <th>Salaire de base</th>
+        <th>Statut</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let e of employes">
+      <tr *ngFor="let e of employes" [class.inactive]="!e.actif">
         <td>{{ e.idEmp }}</td>
         <td>{{ e.nom }}</td>
         <td>{{ e.prenom }}</td>
@@ -45,18 +46,21 @@
           <span *ngIf="editingId !== e.idEmp">{{ e.salaireBase }} MAD</span>
           <input *ngIf="editingId === e.idEmp" type="number" [(ngModel)]="editSalaire">
         </td>
+        <td>
+          <span class="badge-actif" *ngIf="e.actif">Actif</span>
+          <span class="badge-inactif" *ngIf="!e.actif">Inactif</span>
+        </td>
         <td class="actions">
-          <button *ngIf="editingId !== e.idEmp" class="btn-edit" (click)="startEdit(e)">Modifier</button>
+          <button *ngIf="editingId !== e.idEmp && e.actif" class="btn-edit" (click)="startEdit(e)">Modifier</button>
           <button *ngIf="editingId === e.idEmp" class="btn-apply" (click)="saveEdit(e)">Sauvegarder</button>
           <button *ngIf="editingId === e.idEmp" class="btn-cancel" (click)="cancelEdit()">Annuler</button>
-          <button *ngIf="hasPayroll(e.idEmp)" class="btn-warning" (click)="deletePayroll(e.idEmp)">Suppr. fiches RH</button>
-          <button *ngIf="!hasPayroll(e.idEmp)" class="btn-delete" (click)="deleteEmploye(e.idEmp)">Supprimer</button>
+          <button *ngIf="e.actif" class="btn-warning" (click)="desactiver(e.idEmp)">Désactiver</button>
+          <button *ngIf="!e.actif" class="btn-edit" (click)="reactiver(e.idEmp)">Réactiver</button>
+          <button class="btn-delete" (click)="deleteEmploye(e.idEmp)">Supprimer</button>
         </td>
       </tr>
       <tr *ngFor="let e of employes">
-        <td colspan="6" *ngIf="hasPayroll(e.idEmp)" class="warning-note">
-          ⚠ Cet employé a des fiches RH actives. Supprimez-les d'abord avant de supprimer l'employé.
-        </td>
+        
       </tr>
     </tbody>
   </table>
