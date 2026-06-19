@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private baseUrl = 'http://localhost:8080/auth';
+  private baseUrl = 'https://gest-sal-frontnd.vercel.app/auth';
 
   constructor(private http: HttpClient, private router: Router) {}
 
