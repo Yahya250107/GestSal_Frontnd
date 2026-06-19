@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../services/auth';
+import { API_URL } from '../../environment';
 
 @Component({
   selector: 'app-mon-salaire',
@@ -34,14 +35,14 @@ export class MonSalaireComponent implements OnInit {
   ngOnInit() {
   this.idEmp = Number(this.authService.getIdEmp());
 
-  this.http.get<any[]>('http://localhost:8080/salaireF')
+  this.http.get<any[]>(`${API_URL}/salaireF`)
     .subscribe((s: any[]) => {
       this.salaires = s.filter(x => Number(x.idEmp) === this.idEmp);
       this.applyFilters();
       this.cdr.detectChanges();
     });
 
-  this.http.get<any[]>('http://localhost:8080/gestionrh')
+  this.http.get<any[]>(`${API_URL}/gestionrh`)
     .subscribe((g: any[]) => {
       this.gestionRH = g.filter(x => Number(x.idEmp) === this.idEmp);
       this.applyRHFilters();

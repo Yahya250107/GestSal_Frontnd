@@ -6,6 +6,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Employe } from '../models/employe.model';
 import { Poste } from '../models/poste.model';
 import { LogService } from '../services/log';
+import { API_URL } from '../../environment';
 
 @Component({
   selector: 'app-employe',
@@ -44,7 +45,7 @@ export class EmployeComponent implements OnInit {
   }
 
   loadEmployes() {
-    this.http.get<Employe[]>('http://localhost:8080/employe/all')
+    this.http.get<Employe[]>(`${API_URL}/employe/all`)
       .subscribe((e: Employe[]) => {
         this.employes = e;
         this.cdr.detectChanges();
@@ -52,7 +53,7 @@ export class EmployeComponent implements OnInit {
   }
 
   loadPostes() {
-    this.http.get<Poste[]>('http://localhost:8080/poste')
+    this.http.get<Poste[]>(`${API_URL}/poste`)
       .subscribe((p: Poste[]) => {
         this.postes = p;
         this.cdr.detectChanges();
@@ -60,7 +61,7 @@ export class EmployeComponent implements OnInit {
   }
 
   loadGestionRH() {
-    this.http.get<any[]>('http://localhost:8080/gestionrh')
+    this.http.get<any[]>(`${API_URL}/gestionrh`)
       .subscribe((g: any[]) => {
         this.gestionRHList = g;
         this.cdr.detectChanges();
@@ -82,7 +83,7 @@ export class EmployeComponent implements OnInit {
   }
 
   saveEdit(emp: Employe) {
-    this.http.patch(`http://localhost:8080/employe/${emp.idEmp}`, {
+    this.http.patch(` ${API_URL}/employe/${emp.idEmp}`, {
       salaireBase: String(this.editSalaire)
     }).subscribe(() => {
       this.logService.add(`Salaire de ${emp.prenom} ${emp.nom} modifié → ${this.editSalaire} MAD`);
@@ -104,13 +105,13 @@ export class EmployeComponent implements OnInit {
           salaireBase: this.newEmploye.salaireBase,
           idPoste: poste.idPoste
         };
-        this.http.post<Employe>('http://localhost:8080/employe', employe)
+        this.http.post<Employe>(`${API_URL}/employe`, employe)
           .subscribe((e: Employe) => {
             const username = this.newEmploye.nom.toLowerCase() + Date.now().toString().slice(-3);
             const password = this.newEmploye.prenom.toLowerCase() + '123';
             this.logService.add(`Employé ajouté: ${e.prenom} ${e.nom} — Login: ${username} / ${password}`);
             this.newEmploye = { nom: '', prenom: '', salaireBase: 0, postetitre: '' };
-            this.http.post('http://localhost:8080/auth/register', {
+            this.http.post(`${API_URL}/auth/register`, {
               username, password, role: 'EMPLOYEE', idEmp: String(e.idEmp)
             }).subscribe();
             setTimeout(() => {
@@ -124,7 +125,7 @@ export class EmployeComponent implements OnInit {
 
   desactiver(id: number) {
     const emp = this.employes.find(e => e.idEmp === id);
-    this.http.patch(`http://localhost:8080/employe/${id}/desactiver`, {})
+    this.http.patch(` ${API_URL}/employe/${id}/desactiver`, {})
       .subscribe(() => {
         this.logService.add(`Employé désactivé: ${emp?.prenom} ${emp?.nom}`);
         this.loadEmployes();
@@ -134,7 +135,7 @@ export class EmployeComponent implements OnInit {
 
   reactiver(id: number) {
     const emp = this.employes.find(e => e.idEmp === id);
-    this.http.patch(`http://localhost:8080/employe/${id}/reactiver`, {})
+    this.http.patch(` ${API_URL}/employe/${id}/reactiver`, {})
       .subscribe(() => {
         this.logService.add(`Employé réactivé: ${emp?.prenom} ${emp?.nom}`);
         this.loadEmployes();
@@ -145,15 +146,15 @@ export class EmployeComponent implements OnInit {
   deletePayroll(idEmp: number) {
     const emp = this.employes.find(e => e.idEmp === idEmp);
     const records = this.gestionRHList.filter(rh => rh.idEmp === idEmp);
-    this.http.get<any[]>('http://localhost:8080/salaireF')
+    this.http.get<any[]>(`${API_URL}/salaireF`)
       .subscribe((sfList: any[]) => {
         const sfRecords = sfList.filter(s => s.idEmp === idEmp);
         Promise.all([
           ...sfRecords.map(s =>
-            this.http.delete(`http://localhost:8080/salaireF/${s.idEmp}/${s.mois}/${s.annee}`).toPromise()
+            this.http.delete(` ${API_URL}/salaireF/${s.idEmp}/${s.mois}/${s.annee}`).toPromise()
           ),
           ...records.map(rh =>
-            this.http.delete(`http://localhost:8080/gestionrh/${rh.idPr}`).toPromise()
+            this.http.delete(` ${API_URL}/gestionrh/${rh.idPr}`).toPromise()
           )
         ]).then(() => {
           this.logService.add(`Fiches RH et salaires supprimés pour ${emp?.prenom} ${emp?.nom}`);
@@ -165,7 +166,7 @@ export class EmployeComponent implements OnInit {
 
   deleteEmploye(id: number) {
     const emp = this.employes.find(e => e.idEmp === id);
-    this.http.delete(`http://localhost:8080/employe/${id}/user`)
+    this.http.delete(` ${API_URL}/employe/${id}/user`)
       .subscribe(() => {
         this.logService.add(`Employé supprimé: ${emp?.prenom} ${emp?.nom}`);
         this.loadEmployes();

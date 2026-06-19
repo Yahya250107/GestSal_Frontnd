@@ -8,6 +8,7 @@ import { GestionRH } from '../models/gesstion-rh.model';
 import { SalaireF } from '../models/salaire-f.model';
 import { Poste } from '../models/poste.model';
 import { LogService } from '../services/log';
+import { API_URL } from '../../environment';
 
 @Component({
   selector: 'app-salaire',
@@ -45,19 +46,19 @@ export class SalaireComponent implements OnInit {
   ngOnInit() {
   if (!isPlatformBrowser(this.platformId)) return;
 
-  this.http.get<Employe[]>('http://localhost:8080/employe')
+  this.http.get<Employe[]>(`${API_URL}/employe`)
     .subscribe(e => {
       this.employes = e.filter(emp => emp.actif);
       if (this.employes.length > 0) this.form.idEmp = this.employes[0].idEmp;
       this.cdr.detectChanges();
     });
-  this.http.get<Poste[]>('http://localhost:8080/poste')
+  this.http.get<Poste[]>(`${API_URL}/poste`)
     .subscribe(p => this.postes = p);
   this.loadSalaires();
 }
 
   loadSalaires() {
-    this.http.get<SalaireF[]>('http://localhost:8080/salaireF')
+    this.http.get<SalaireF[]>(`${API_URL}/salaireF`)
       .subscribe(s => {
         this.salaires = [...s];
         this.totalSalaires = this.salaires.reduce((sum, x) => sum + x.sf, 0);
@@ -90,7 +91,7 @@ export class SalaireComponent implements OnInit {
       heuresAbsence: this.form.heuresAbsence
     };
 
-    this.http.get<any[]>('http://localhost:8080/gestionrh')
+    this.http.get<any[]>(`${API_URL}/gestionrh`)
       .subscribe(rhList => {
         const existing = rhList.find(r =>
           r.idEmp === +this.form.idEmp &&
@@ -99,18 +100,18 @@ export class SalaireComponent implements OnInit {
         );
 
         const request = existing
-          ? this.http.patch(`http://localhost:8080/gestionrh/${existing.idPr}`, {
+          ? this.http.patch(` ${API_URL}/gestionrh/${existing.idPr}`, {
               heuresSupNormalSoir: String(this.form.heuresSupNormalSoir),
               heuresSupNormalNuit: String(this.form.heuresSupNormalNuit),
               heuresSupFerieSoir: String(this.form.heuresSupFerieSoir),
               heuresSupFerieNuit: String(this.form.heuresSupFerieNuit),
               heuresAbsence: String(this.form.heuresAbsence)
             })
-          : this.http.post('http://localhost:8080/gestionrh', gestionRH);
+          : this.http.post(`${API_URL}/gestionrh`, gestionRH);
 
         request.subscribe(() => {
           this.http.post(
-            `http://localhost:8080/salaireF/calculer/${this.form.idEmp}/${this.form.mois}/${this.form.annee}`,
+            ` ${API_URL}/salaireF/calculer/${this.form.idEmp}/${this.form.mois}/${this.form.annee}`,
             {}
           ).subscribe(() => {
             this.logService.add(`Salaire calculé pour ${this.getName(+this.form.idEmp)}`);
@@ -122,10 +123,10 @@ export class SalaireComponent implements OnInit {
 
   deleteSalaire(idEmp: number, mois: number, annee: number) {
   // Delete salaireF
-  this.http.delete(`http://localhost:8080/salaireF/${idEmp}/${mois}/${annee}`)
+  this.http.delete(` ${API_URL}/salaireF/${idEmp}/${mois}/${annee}`)
     .subscribe(() => {
       // Find and delete all gestionrh records for same employee/month/year
-      this.http.get<any[]>('http://localhost:8080/gestionrh')
+      this.http.get<any[]>(`${API_URL}/gestionrh`)
         .subscribe((rhList: any[]) => {
           const records = rhList.filter(r =>
             r.idEmp === idEmp &&
@@ -134,7 +135,7 @@ export class SalaireComponent implements OnInit {
           );
           Promise.all(
             records.map(r =>
-              this.http.delete(`http://localhost:8080/gestionrh/${r.idPr}`).toPromise()
+              this.http.delete(` ${API_URL}/gestionrh/${r.idPr}`).toPromise()
             )
           ).then(() => {
             this.logService.add(`Fiche supprimée pour ${this.getName(idEmp)} — Mois ${mois}/${annee}`);

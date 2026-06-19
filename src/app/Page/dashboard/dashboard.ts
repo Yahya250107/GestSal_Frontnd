@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LogService } from '../services/log';
 import { AuthService } from '../services/auth';
+import { API_URL } from '../../environment';
 
 @Component({
   selector: 'app-dashboard',
