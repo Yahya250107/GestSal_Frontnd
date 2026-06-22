@@ -1,5 +1,5 @@
 <nav class="navbar" *ngIf="isLoggedIn">
-  <div class="nav-logo">GestSal</div>
+  <div class="nav-logo" routerLink="/" style="cursor: pointer;">ERP</div>
   <div class="nav-links">
     <a routerLink="/" routerLinkActive="active">Accueil</a>
     <a *ngIf="isManager" routerLink="/employes" routerLinkActive="active">Employés</a>

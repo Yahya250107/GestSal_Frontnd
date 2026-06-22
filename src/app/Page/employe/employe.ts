@@ -97,32 +97,57 @@ export class EmployeComponent implements OnInit {
   }
 
   addEmploye() {
-    this.http.post<Poste>(`${API_URL}/poste`, { titre: this.newEmploye.postetitre })
-      .subscribe((poste: Poste) => {
-        const employe = {
-          nom: this.newEmploye.nom,
-          prenom: this.newEmploye.prenom,
-          salaireBase: this.newEmploye.salaireBase,
-          idPoste: poste.idPoste
-        };
-        this.http.post<Employe>(`${API_URL}/employe`, employe)
-          .subscribe((e: Employe) => {
-            const username = this.newEmploye.nom.toLowerCase() + Date.now().toString().slice(-3);
-            const password = this.newEmploye.prenom.toLowerCase() + '123';
-            this.logService.add(`Employé ajouté: ${e.prenom} ${e.nom} — Login: ${username} / ${password}`);
-            this.newEmploye = { nom: '', prenom: '', salaireBase: 0, postetitre: '' };
-            this.http.post(`${API_URL}/auth/register`, {
-              username, password, role: 'EMPLOYEE', idEmp: String(e.idEmp)
-            }).subscribe();
-            setTimeout(() => {
-              this.loadEmployes();
-              this.loadPostes();
-              this.cdr.detectChanges();
-            }, 500);
-          });
-      });
+  // Validation
+  if (
+    !this.newEmploye.nom.trim() ||
+    !this.newEmploye.prenom.trim() ||
+    !this.newEmploye.postetitre.trim() ||
+    !this.newEmploye.salaireBase
+  ) {
+    alert("Veuillez remplir tous les champs avant d'ajouter un employé.");
+    return;
   }
 
+  this.http.post<Poste>(`${API_URL}/poste`, { titre: this.newEmploye.postetitre })
+    .subscribe((poste: Poste) => {
+      const employe = {
+        nom: this.newEmploye.nom,
+        prenom: this.newEmploye.prenom,
+        salaireBase: this.newEmploye.salaireBase,
+        idPoste: poste.idPoste
+      };
+
+      this.http.post<Employe>(`${API_URL}/employe`, employe)
+        .subscribe((e: Employe) => {
+          const username = this.newEmploye.nom.toLowerCase() + Date.now().toString().slice(-3);
+          const password = this.newEmploye.prenom.toLowerCase() + '123';
+
+          this.logService.add(
+            `Employé ajouté: ${e.prenom} ${e.nom} — Login: ${username} / ${password}`
+          );
+
+          this.newEmploye = {
+            nom: '',
+            prenom: '',
+            salaireBase: 0,
+            postetitre: ''
+          };
+
+          this.http.post(`${API_URL}/auth/register`, {
+            username,
+            password,
+            role: 'EMPLOYEE',
+            idEmp: String(e.idEmp)
+          }).subscribe();
+
+          setTimeout(() => {
+            this.loadEmployes();
+            this.loadPostes();
+            this.cdr.detectChanges();
+          }, 500);
+        });
+    });
+}
   desactiver(id: number) {
     const emp = this.employes.find(e => e.idEmp === id);
     this.http.patch(` ${API_URL}/employe/${id}/desactiver`, {})
@@ -173,4 +198,5 @@ export class EmployeComponent implements OnInit {
         this.cdr.detectChanges();
       });
   }
+  
 }
