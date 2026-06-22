@@ -190,13 +190,18 @@ export class EmployeComponent implements OnInit {
   }
 
   deleteEmploye(id: number) {
-    const emp = this.employes.find(e => e.idEmp === id);
-    this.http.delete(` ${API_URL}/employe/${id}/user`)
-      .subscribe(() => {
-        this.logService.add(`Employé supprimé: ${emp?.prenom} ${emp?.nom}`);
-        this.loadEmployes();
-        this.cdr.detectChanges();
-      });
+  const emp = this.employes.find(e => e.idEmp === id);
+
+  if (!confirm(`Voulez-vous vraiment supprimer ${emp?.prenom} ${emp?.nom} ? Cette action est irréversible.`)) {
+    return;
   }
+
+  this.http.delete(`${API_URL}/employe/${id}/user`)
+    .subscribe(() => {
+      this.logService.add(`Employé supprimé: ${emp?.prenom} ${emp?.nom}`);
+      this.loadEmployes();
+      this.cdr.detectChanges();
+    });
+}
   
 }
