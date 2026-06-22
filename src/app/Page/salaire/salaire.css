@@ -150,3 +150,11 @@ tr:hover td {
   background: #fff7ed;
   padding: 8px 20px;
 }
+.results-header select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 0.5px solid #e0e0e0;
+  font-size: 13px;
+  background: #fafafa;
+  color: #1a1a1a;
+}

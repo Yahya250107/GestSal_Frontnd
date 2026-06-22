@@ -3,7 +3,6 @@
 
   <div class="form-card">
     <h3>Calculer un salaire</h3>
-
     <div class="form-row">
       <div class="form-group">
         <label>Employé</label>
@@ -13,51 +12,47 @@
           </option>
         </select>
       </div>
-
       <div class="form-group">
         <label>Mois</label>
         <input type="number" [(ngModel)]="form.mois" min="1" max="12">
       </div>
-
       <div class="form-group">
         <label>Année</label>
         <input type="number" [(ngModel)]="form.annee">
       </div>
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label>H. sup soir normal</label>
-        <input type="number" [(ngModel)]="form.heuresSupNormalSoir">
+        <input type="number" [(ngModel)]="form.heuresSupNormalSoir" step="0.5" min="0">
       </div>
-
       <div class="form-group">
         <label>H. sup nuit normal</label>
-        <input type="number" [(ngModel)]="form.heuresSupNormalNuit">
+        <input type="number" [(ngModel)]="form.heuresSupNormalNuit" step="0.5" min="0">
       </div>
-
       <div class="form-group">
         <label>H. sup soir férié</label>
-        <input type="number" [(ngModel)]="form.heuresSupFerieSoir">
+        <input type="number" [(ngModel)]="form.heuresSupFerieSoir" step="0.5" min="0">
       </div>
-
       <div class="form-group">
         <label>H. sup nuit férié</label>
-        <input type="number" [(ngModel)]="form.heuresSupFerieNuit">
+        <input type="number" [(ngModel)]="form.heuresSupFerieNuit" step="0.5" min="0">
       </div>
-
       <div class="form-group">
         <label>Heures absence</label>
-        <input type="number" [(ngModel)]="form.heuresAbsence">
+        <input type="number" [(ngModel)]="form.heuresAbsence" step="0.5" min="0">
       </div>
     </div>
-
     <button class="btn-apply" (click)="applyPayroll()">Apply Payroll</button>
   </div>
 
   <div class="results-header">
     <h3>Résultats</h3>
-    <span>Total : {{ totalSalaires | number:'1.2-2' }} MAD</span>
+    <select [(ngModel)]="filterEmploye">
+      <option value="">Tous les employés</option>
+      <option *ngFor="let e of employes" [value]="e.idEmp">{{ e.prenom }} {{ e.nom }}</option>
+    </select>
+    <span class="total">Total : {{ getTotalSalaires() | number:'1.2-2' }} MAD</span>
   </div>
 
   <table>
@@ -67,32 +62,24 @@
         <th>Poste</th>
         <th>Mois</th>
         <th>Année</th>
-        <th>Salaire</th>
-        <th></th>
+        <th>Salaire final</th>
+        <th>Actions</th>
       </tr>
     </thead>
-
     <tbody>
-      <tr *ngFor="let s of salaires">
+      <tr *ngFor="let s of filteredSalaires">
         <td>
-          {{ getName(s.idEmp) }}
-          <div>#{{ s.idEmp }}</div>
+          <div class="emp-name">{{ getName(s.idEmp) }}</div>
+          <div class="emp-id">#{{ s.idEmp }}</div>
         </td>
-
         <td>{{ getPoste(s.idEmp) }}</td>
         <td>{{ s.mois }}</td>
         <td>{{ s.annee }}</td>
-
-        <td>{{ s.sf | number:'1.2-2' }} MAD</td>
-
+        <td class="salary-amount">{{ s.sf | number:'1.2-2' }} MAD</td>
         <td>
-          <button (click)="deleteSalaire(s.idEmp, s.mois, s.annee)">
-            Supprimer
-          </button>
+          <button class="btn-delete" (click)="deleteSalaire(s.idEmp, s.mois, s.annee)">Supprimer</button>
         </td>
       </tr>
     </tbody>
   </table>
-
-  <p>Nombre de salaires: {{ salaires.length }}</p>
 </div>

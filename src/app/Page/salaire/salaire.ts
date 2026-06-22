@@ -23,6 +23,7 @@ export class SalaireComponent implements OnInit {
   salaires: SalaireF[] = [];
   postes: Poste[] = [];
   totalSalaires = 0;
+  filterEmploye: string = '';
 
   form = {
     idEmp: 0,
@@ -44,26 +45,34 @@ export class SalaireComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-  if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId)) return;
 
-  this.http.get<Employe[]>(`${API_URL}/employe`)
-    .subscribe(e => {
-      this.employes = e.filter(emp => emp.actif);
-      if (this.employes.length > 0) this.form.idEmp = this.employes[0].idEmp;
-      this.cdr.detectChanges();
-    });
-  this.http.get<Poste[]>(`${API_URL}/poste`)
-    .subscribe(p => this.postes = p);
-  this.loadSalaires();
-}
+    this.http.get<Employe[]>(`${API_URL}/employe`)
+      .subscribe(e => {
+        this.employes = e.filter(emp => emp.actif);
+        if (this.employes.length > 0) this.form.idEmp = this.employes[0].idEmp;
+        this.cdr.detectChanges();
+      });
+    this.http.get<Poste[]>(`${API_URL}/poste`)
+      .subscribe(p => this.postes = p);
+    this.loadSalaires();
+  }
 
   loadSalaires() {
     this.http.get<SalaireF[]>(`${API_URL}/salaireF`)
       .subscribe(s => {
         this.salaires = [...s];
-        this.totalSalaires = this.salaires.reduce((sum, x) => sum + x.sf, 0);
         this.cdr.detectChanges();
       });
+  }
+
+  get filteredSalaires(): SalaireF[] {
+    if (!this.filterEmploye) return this.salaires;
+    return this.salaires.filter(s => s.idEmp === +this.filterEmploye);
+  }
+
+  getTotalSalaires(): number {
+    return this.filteredSalaires.reduce((sum, x) => sum + x.sf, 0);
   }
 
   getName(idEmp: number): string {
@@ -100,7 +109,7 @@ export class SalaireComponent implements OnInit {
         );
 
         const request = existing
-          ? this.http.patch(` ${API_URL}/gestionrh/${existing.idPr}`, {
+          ? this.http.patch(`${API_URL}/gestionrh/${existing.idPr}`, {
               heuresSupNormalSoir: String(this.form.heuresSupNormalSoir),
               heuresSupNormalNuit: String(this.form.heuresSupNormalNuit),
               heuresSupFerieSoir: String(this.form.heuresSupFerieSoir),
@@ -111,7 +120,7 @@ export class SalaireComponent implements OnInit {
 
         request.subscribe(() => {
           this.http.post(
-            ` ${API_URL}/salaireF/calculer/${this.form.idEmp}/${this.form.mois}/${this.form.annee}`,
+            `${API_URL}/salaireF/calculer/${this.form.idEmp}/${this.form.mois}/${this.form.annee}`,
             {}
           ).subscribe(() => {
             this.logService.add(`Salaire calculé pour ${this.getName(+this.form.idEmp)}`);
@@ -122,26 +131,24 @@ export class SalaireComponent implements OnInit {
   }
 
   deleteSalaire(idEmp: number, mois: number, annee: number) {
-  // Delete salaireF
-  this.http.delete(` ${API_URL}/salaireF/${idEmp}/${mois}/${annee}`)
-    .subscribe(() => {
-      // Find and delete all gestionrh records for same employee/month/year
-      this.http.get<any[]>(`${API_URL}/gestionrh`)
-        .subscribe((rhList: any[]) => {
-          const records = rhList.filter(r =>
-            r.idEmp === idEmp &&
-            r.mois === mois &&
-            r.annee === annee
-          );
-          Promise.all(
-            records.map(r =>
-              this.http.delete(` ${API_URL}/gestionrh/${r.idPr}`).toPromise()
-            )
-          ).then(() => {
-            this.logService.add(`Fiche supprimée pour ${this.getName(idEmp)} — Mois ${mois}/${annee}`);
-            this.loadSalaires();
+    this.http.delete(`${API_URL}/salaireF/${idEmp}/${mois}/${annee}`)
+      .subscribe(() => {
+        this.http.get<any[]>(`${API_URL}/gestionrh`)
+          .subscribe((rhList: any[]) => {
+            const records = rhList.filter(r =>
+              r.idEmp === idEmp &&
+              r.mois === mois &&
+              r.annee === annee
+            );
+            Promise.all(
+              records.map(r =>
+                this.http.delete(`${API_URL}/gestionrh/${r.idPr}`).toPromise()
+              )
+            ).then(() => {
+              this.logService.add(`Fiche supprimée pour ${this.getName(idEmp)} — Mois ${mois}/${annee}`);
+              this.loadSalaires();
+            });
           });
-        });
-    });
-}
+      });
+  }
 }
