@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../services/auth';
 import { API_URL } from '../../environment';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-mon-salaire',
@@ -68,4 +70,38 @@ export class MonSalaireComponent implements OnInit {
   getYears(list: any[]): number[] {
     return [...new Set(list.map(x => x.annee))].sort((a, b) => b - a);
   }
+  generatePDF() {
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text('Fiche de Paie', 14, 20);
+
+  doc.setFontSize(11);
+  doc.text(`Employé ID: ${this.idEmp}`, 14, 30);
+  doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, 36);
+
+  autoTable(doc, {
+    startY: 45,
+    head: [['Mois', 'Année', 'Salaire final']],
+    body: this.filteredSalaires.map(s => [s.mois, s.annee, `${s.sf.toFixed(2)} MAD`]),
+  });
+
+  const finalY = (doc as any).lastAutoTable.finalY || 60;
+
+  doc.setFontSize(13);
+  doc.text('Pointage', 14, finalY + 15);
+
+  autoTable(doc, {
+    startY: finalY + 20,
+    head: [['Mois', 'Année', 'Sup. Soir', 'Sup. Nuit', 'Férié Soir', 'Férié Nuit', 'Absences']],
+    body: this.filteredGestionRH.map(g => [
+      g.mois, g.annee,
+      g.heuresSupNormalSoir, g.heuresSupNormalNuit,
+      g.heuresSupFerieSoir, g.heuresSupFerieNuit,
+      g.heuresAbsence
+    ]),
+  });
+
+  doc.save(`fiche-paie-${this.idEmp}.pdf`);
+}
 }

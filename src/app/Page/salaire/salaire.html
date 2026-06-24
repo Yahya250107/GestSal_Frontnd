@@ -52,6 +52,9 @@
       <option value="">Tous les employés</option>
       <option *ngFor="let e of employes" [value]="e.idEmp">{{ e.prenom }} {{ e.nom }}</option>
     </select>
+    <input type="number" [(ngModel)]="reportMois" min="1" max="12" placeholder="Mois" style="width: 60px;">
+    <input type="number" [(ngModel)]="reportAnnee" placeholder="Année" style="width: 80px;">
+    <button class="btn-apply" (click)="generateMonthlyReportPDF()">Rapport PDF</button>
     <span class="total">Total : {{ getTotalSalaires() | number:'1.2-2' }} MAD</span>
   </div>
 

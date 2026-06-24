@@ -7,6 +7,8 @@ import { Employe } from '../models/employe.model';
 import { Poste } from '../models/poste.model';
 import { LogService } from '../services/log';
 import { API_URL } from '../../environment';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-employe',
@@ -203,5 +205,32 @@ export class EmployeComponent implements OnInit {
       this.cdr.detectChanges();
     });
 }
-  
+generateBaseSalaryReportPDF() {
+  const doc = new jsPDF();
+  const activeEmployes = this.employes.filter(e => e.actif);
+
+  doc.setFontSize(18);
+  doc.text('Liste des Employés - Salaire de Base', 14, 20);
+
+  doc.setFontSize(11);
+  doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, 30);
+
+  autoTable(doc, {
+    startY: 40,
+    head: [['Employé', 'Poste', 'Salaire de base']],
+    body: activeEmployes.map(e => [
+      `${e.prenom} ${e.nom}`,
+      this.getPosteTitle(e.idPoste),
+      `${e.salaireBase.toFixed(2)} MAD`
+    ]),
+  });
+
+  const total = activeEmployes.reduce((sum, e) => sum + e.salaireBase, 0);
+  const finalY = (doc as any).lastAutoTable.finalY || 60;
+
+  doc.setFontSize(13);
+  doc.text(`Total: ${total.toFixed(2)} MAD`, 14, finalY + 15);
+
+  doc.save(`employes-salaire-base.pdf`);
+}  
 }

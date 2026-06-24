@@ -9,6 +9,8 @@ import { SalaireF } from '../models/salaire-f.model';
 import { Poste } from '../models/poste.model';
 import { LogService } from '../services/log';
 import { API_URL } from '../../environment';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-salaire',
@@ -24,6 +26,9 @@ export class SalaireComponent implements OnInit {
   postes: Poste[] = [];
   totalSalaires = 0;
   filterEmploye: string = '';
+
+  reportMois: number = new Date().getMonth() + 1;
+  reportAnnee: number = new Date().getFullYear();
 
   form = {
     idEmp: 0,
@@ -151,4 +156,38 @@ export class SalaireComponent implements OnInit {
           });
       });
   }
+
+  generateMonthlyReportPDF() {
+    const doc = new jsPDF();
+
+    const salairesFiltres = this.salaires.filter(
+      s => s.mois === this.reportMois && s.annee === this.reportAnnee
+    );
+
+    doc.setFontSize(18);
+    doc.text('Rapport de Paie Mensuel', 14, 20);
+
+    doc.setFontSize(11);
+    doc.text(`Mois: ${this.reportMois}/${this.reportAnnee}`, 14, 30);
+    doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, 36);
+
+    autoTable(doc, {
+      startY: 45,
+      head: [['Employé', 'Poste', 'Salaire final']],
+      body: salairesFiltres.map(s => [
+        this.getName(s.idEmp),
+        this.getPoste(s.idEmp),
+        `${s.sf.toFixed(2)} MAD`
+      ]),
+    });
+
+    const total = salairesFiltres.reduce((sum, s) => sum + s.sf, 0);
+    const finalY = (doc as any).lastAutoTable.finalY || 60;
+
+    doc.setFontSize(13);
+    doc.text(`Total: ${total.toFixed(2)} MAD`, 14, finalY + 15);
+
+    doc.save(`rapport-paie-${this.reportMois}-${this.reportAnnee}.pdf`);
+  }
+  
 }

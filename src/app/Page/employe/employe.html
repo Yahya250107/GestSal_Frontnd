@@ -1,5 +1,8 @@
 <div class="container">
-  <h2>Gestion des Employés</h2>
+  <div class="header-row">
+    <h2>Gestion des Employés</h2>
+    <button class="btn-apply" (click)="generateBaseSalaryReportPDF()">Liste Salaires PDF</button>
+  </div>
 
   <div class="form-card">
     <h3>Ajouter un employé</h3>
@@ -58,9 +61,6 @@
           <button *ngIf="!e.actif" class="btn-edit" (click)="reactiver(e.idEmp)">Réactiver</button>
           <button class="btn-delete" (click)="deleteEmploye(e.idEmp)">Supprimer</button>
         </td>
-      </tr>
-      <tr *ngFor="let e of employes">
-        
       </tr>
     </tbody>
   </table>

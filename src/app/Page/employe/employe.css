@@ -150,3 +150,9 @@ tr:hover td {
 .inactive td {
   opacity: 0.5;
 }
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
