@@ -73,7 +73,6 @@ export class MonSalaireComponent implements OnInit {
   }
   generatePDF() {
   const doc = new jsPDF();
-  doc.addImage(LOGO_BASE64, 'JPEG', 165, 10, 30, 30);
 
   doc.setFontSize(18);
   doc.text('Fiche de Paie', 14, 20);
