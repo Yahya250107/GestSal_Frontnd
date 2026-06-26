@@ -160,7 +160,7 @@ export class SalaireComponent implements OnInit {
 
   generateMonthlyReportPDF() {
     const doc = new jsPDF();
-    doc.addImage(LOGO_BASE64, 'JPEG', 165, 10, 30, 30);
+  
     const salairesFiltres = this.salaires.filter(
       s => s.mois === this.reportMois && s.annee === this.reportAnnee
     );
